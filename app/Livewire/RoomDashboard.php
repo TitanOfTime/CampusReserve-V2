@@ -23,7 +23,8 @@ class RoomDashboard extends Component
 
     public function openModal($roomId)
     {
-        $this->selectedRoom = Room::find($roomId);
+        // Read from the in-memory collection — zero extra DB queries
+        $this->selectedRoom = $this->rooms->firstWhere('id', $roomId);
         $this->showModal = true;
     }
 
@@ -39,8 +40,8 @@ class RoomDashboard extends Component
     public function bookRoom(BookingService $bookingService)
     {
         $this->validate([
-            'startTime' => 'required|date|after:now',
-            'endTime' => 'required|date|after:startTime',
+            'startTime' => 'required|date|after_or_equal:now',
+            'endTime'   => 'required|date|after:startTime',
         ]);
 
         try {

@@ -50,4 +50,46 @@ class BookingService
             ]);
         });
     }
+
+    /**
+     * Attempt to update an existing booking with validation.
+     *
+     * @throws ValidationException
+     */
+    function updateBooking(Booking $booking, array $data): Booking
+    {
+        return DB::transaction(function () use ($booking, $data) {
+            // 1. Premium room access check (room may have changed if ever extended)
+            $room = Room::findOrFail($booking->room_id);
+            $user = $booking->user;
+            if ($room->is_premium && !$user->is_premium) {
+                throw ValidationException::withMessages([
+                    'room_id' => 'Only premium users can book premium rooms.',
+                ]);
+            }
+
+            // 2. Double-booking check — EXCLUDES the booking being edited
+            $overlap = Booking::where('room_id', $booking->room_id)
+                ->where('status', 'confirmed')
+                ->where('id', '!=', $booking->id)   // <-- key difference
+                ->where('start_time', '<', $data['end_time'])
+                ->where('end_time', '>', $data['start_time'])
+                ->lockForUpdate()
+                ->exists();
+
+            if ($overlap) {
+                throw ValidationException::withMessages([
+                    'newStartTime' => 'This room is already booked for the selected time slot.',
+                ]);
+            }
+
+            // 3. Apply the update
+            $booking->update([
+                'start_time' => $data['start_time'],
+                'end_time'   => $data['end_time'],
+            ]);
+
+            return $booking->fresh();
+        });
+    }
 }

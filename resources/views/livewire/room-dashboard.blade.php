@@ -37,8 +37,9 @@
                             @endif
                         </div>
                         <p class="text-sm text-slate-500 mb-4 flex-grow">{{ $room->description }}</p>
-                        <button wire:click="openModal({{ $room->id }})" class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2.5 font-medium transition-colors focus:ring-4 focus:ring-blue-100">
-                            Book Now
+                        <button wire:click="openModal({{ $room->id }})" wire:loading.attr="disabled" wire:target="openModal({{ $room->id }})" class="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white rounded-lg py-2.5 font-medium transition-colors focus:ring-4 focus:ring-blue-100 flex justify-center items-center">
+                            <span wire:loading.remove wire:target="openModal({{ $room->id }})">Book Now</span>
+                            <span wire:loading wire:target="openModal({{ $room->id }})" style="display:none;">Loading...</span>
                         </button>
                     </div>
                 </div>
@@ -121,7 +122,10 @@
                         </div>
                         @error('room_id')
                             <div class="col-span-1 sm:col-span-2">
-                                <span class="text-red-500 text-sm">{{ $message }}</span>
+                                <div class="flex items-start gap-2 bg-red-50 border border-red-200 text-red-700 rounded-lg p-3">
+                                    <svg class="w-4 h-4 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span class="text-sm font-medium">{{ $message }}</span>
+                                </div>
                             </div>
                         @enderror
                     </div>

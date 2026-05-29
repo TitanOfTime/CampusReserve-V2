@@ -20,6 +20,14 @@ Route::middleware([
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
+
+    Route::get('/bookings', function () {
+        return view('bookings');
+    })->name('bookings');
+
+    Route::get('/profile', function () {
+        return view('profile-custom');
+    })->name('profile');
 });
 
 // Admin-only routes
