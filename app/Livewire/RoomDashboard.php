@@ -4,27 +4,28 @@ namespace App\Livewire;
 
 use Livewire\Component;
 
+use Livewire\Attributes\Computed;
 use App\Models\Room;
 use App\Services\BookingService;
 use Illuminate\Validation\ValidationException;
 
 class RoomDashboard extends Component
 {
-    public $rooms;
     public $selectedRoom = null;
     public $startTime;
     public $endTime;
     public $showModal = false;
 
-    public function mount()
+    #[Computed]
+    public function rooms()
     {
-        $this->rooms = Room::all();
+        return Room::all();
     }
 
     public function openModal($roomId)
     {
-        // Read from the in-memory collection — zero extra DB queries
-        $this->selectedRoom = $this->rooms->firstWhere('id', $roomId);
+        // Fetch selected room directly via indexed database query
+        $this->selectedRoom = Room::find($roomId);
         $this->showModal = true;
     }
 

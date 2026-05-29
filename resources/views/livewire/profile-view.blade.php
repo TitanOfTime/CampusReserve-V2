@@ -60,6 +60,24 @@
                 </div>
             </div>
 
+            @if(!$user->is_premium)
+                <div class="mb-8 p-6 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 text-white relative overflow-hidden shadow-md">
+                    <div class="relative z-10">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-2xl">👑</span>
+                            <h3 class="text-lg font-bold">Upgrade to CampusReserve Premium</h3>
+                        </div>
+                        <p class="text-amber-100 text-xs mb-4 max-w-md">Get instant access to premium meeting rooms, elite boardrooms, priority scheduling, and unlimited booking durations for a one-time payment of $10.</p>
+                        <a href="{{ route('premium.checkout') }}"
+                           class="inline-flex items-center px-4 py-2.5 bg-white text-orange-600 text-xs font-bold rounded-lg shadow-sm hover:bg-orange-50 transition-colors uppercase tracking-wider">
+                            Upgrade Now – $10
+                        </a>
+                    </div>
+                    {{-- Decorative big background crown --}}
+                    <div class="absolute right-0 bottom-0 text-white/10 text-9xl transform translate-x-8 translate-y-8 select-none pointer-events-none font-bold">👑</div>
+                </div>
+            @endif
+
             {{-- Log Out Button --}}
             <div class="pt-6 border-t border-gray-100">
                 <button wire:click="logout"
@@ -74,5 +92,17 @@
 
         </div>
     </div>
+
+    {{-- Two Factor Authentication Section --}}
+    @if (Laravel\Fortify\Features::canManageTwoFactorAuthentication())
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mt-8">
+            <h3 class="text-lg font-bold text-slate-900 mb-2">Two-Factor Authentication</h3>
+            <p class="text-slate-600 text-sm mb-6">Add additional security to your account using two-factor authentication.</p>
+            
+            <div class="mt-4">
+                @livewire('profile.two-factor-authentication-form')
+            </div>
+        </div>
+    @endif
 
 </div>

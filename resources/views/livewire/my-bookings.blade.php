@@ -23,7 +23,7 @@
     <div>
         <h2 class="text-base font-semibold text-slate-500 uppercase tracking-wide mb-4">Upcoming Bookings</h2>
 
-        @if($bookings->isEmpty())
+        @if($this->bookings->isEmpty())
             {{-- Empty State --}}
             <div class="text-center py-20 bg-white rounded-2xl border border-gray-100">
                 <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
@@ -39,7 +39,7 @@
             </div>
         @else
             <div class="space-y-4">
-                @foreach($bookings as $booking)
+                @foreach($this->bookings as $booking)
                     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col sm:flex-row items-start sm:items-center gap-5">
 
                         {{-- Room Thumbnail --}}

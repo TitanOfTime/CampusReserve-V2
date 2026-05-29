@@ -11,20 +11,26 @@
             </div>
         @endif
 
+        @if(session('warning'))
+            <div class="mb-6 p-4 rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
+                {{ session('warning') }}
+            </div>
+        @endif
+
         @if(!auth()->user()->is_premium)
             <div class="mb-8 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 p-6 shadow-lg text-white flex flex-col sm:flex-row items-center justify-between">
                 <div>
                     <h3 class="text-xl font-bold">Upgrade to Premium</h3>
                     <p class="mt-1 opacity-90">Get access to exclusive boardrooms, soundproof pods, and priority booking.</p>
                 </div>
-                <button class="mt-4 sm:mt-0 px-6 py-2 bg-white text-purple-700 font-semibold rounded-lg shadow-sm hover:bg-gray-50 transition-colors">
+                <a href="{{ route('premium.checkout') }}" class="mt-4 sm:mt-0 px-6 py-2.5 bg-white text-purple-700 font-semibold rounded-lg shadow-sm hover:bg-gray-50 transition-colors text-center">
                     Upgrade Now
-                </button>
+                </a>
             </div>
         @endif
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            @foreach($rooms as $room)
+            @foreach($this->rooms as $room)
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group">
                     <div class="h-48 overflow-hidden">
                         <img src="{{ $room->image_url }}" alt="{{ $room->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">

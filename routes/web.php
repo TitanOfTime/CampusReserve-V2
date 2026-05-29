@@ -12,6 +12,8 @@ Route::get('/', function () {
 Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])->name('google.redirect');
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('google.callback');
 
+use App\Http\Controllers\PremiumUpgradeController;
+
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
@@ -28,6 +30,11 @@ Route::middleware([
     Route::get('/profile', function () {
         return view('profile-custom');
     })->name('profile');
+
+    // Stripe Premium Upgrade Routes
+    Route::get('/upgrade/checkout', [PremiumUpgradeController::class, 'checkout'])->name('premium.checkout');
+    Route::get('/upgrade/success', [PremiumUpgradeController::class, 'success'])->name('premium.success');
+    Route::get('/upgrade/cancel', [PremiumUpgradeController::class, 'cancel'])->name('premium.cancel');
 });
 
 // Admin-only routes

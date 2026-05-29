@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use Livewire\Attributes\Computed;
 use App\Models\Booking;
 use App\Services\BookingService;
 use Illuminate\Validation\ValidationException;
@@ -9,22 +10,16 @@ use Livewire\Component;
 
 class MyBookings extends Component
 {
-    public $bookings;
-
     // Edit modal state
     public $showEditModal   = false;
     public $editingBooking  = null;
     public $newStartTime;
     public $newEndTime;
 
-    public function mount(): void
+    #[Computed]
+    public function bookings()
     {
-        $this->loadBookings();
-    }
-
-    private function loadBookings(): void
-    {
-        $this->bookings = auth()->user()
+        return auth()->user()
             ->bookings()
             ->with('room')
             ->where('status', 'confirmed')
@@ -51,7 +46,6 @@ class MyBookings extends Component
         }
 
         $booking->update(['status' => 'cancelled']);
-        $this->loadBookings();
         session()->flash('success', 'Booking cancelled successfully.');
     }
 
@@ -95,7 +89,6 @@ class MyBookings extends Component
             ]);
 
             $this->closeEditModal();
-            $this->loadBookings();
             session()->flash('success', 'Booking updated successfully.');
 
         } catch (ValidationException $e) {
