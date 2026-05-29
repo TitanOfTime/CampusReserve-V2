@@ -15,11 +15,17 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Create a default admin user for testing
+        \App\Models\User::factory()->create([
+            'name' => 'Test Admin',
+            'email' => 'immylance@gmail.com',
+            'password' => \Illuminate\Support\Facades\Hash::make('password'),
+            'is_admin' => true,
+            'is_premium' => true,
+        ]);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        $this->call([
+            RoomSeeder::class,
         ]);
     }
 }

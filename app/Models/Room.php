@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Room extends Model
 {
-    protected $fillable = ['name', 'location', 'capacity', 'is_premium', 'description'];
+    protected $fillable = ['name', 'location', 'capacity', 'is_premium', 'description', 'image_url'];
 
     protected function casts(): array
     {
