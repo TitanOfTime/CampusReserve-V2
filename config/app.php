@@ -123,4 +123,17 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Force HTTPS
+    |--------------------------------------------------------------------------
+    |
+    | When enabled, all generated URLs and redirects will use the https scheme.
+    | Set FORCE_HTTPS=true in your production .env when behind a reverse proxy
+    | (e.g. Render, Heroku, Nginx) that terminates SSL.
+    |
+    */
+
+    'force_https' => env('FORCE_HTTPS', false),
+
 ];

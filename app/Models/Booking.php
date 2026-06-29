@@ -31,6 +31,16 @@ class Booking extends Model
         return $query->where('status', 'confirmed');
     }
 
+    public function scopeUpcoming($query)
+    {
+        return $query->where('start_time', '>=', now());
+    }
+
+    public function scopeForUser($query, int $userId)
+    {
+        return $query->where('user_id', $userId);
+    }
+
     public function scopeForRoom($query, $roomId)
     {
         return $query->where('room_id', $roomId);

@@ -2,12 +2,13 @@
 
 namespace App\Livewire;
 
-use Livewire\Component;
-
-use Livewire\Attributes\Computed;
 use App\Models\Room;
 use App\Services\BookingService;
+use App\Services\RoomRecommendationService;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Computed;
+use Livewire\Component;
 
 class RoomDashboard extends Component
 {
@@ -15,17 +16,24 @@ class RoomDashboard extends Component
     public $startTime;
     public $endTime;
     public $showModal = false;
+    public string $preference = '';
+    public array $recommendation = [];
 
     #[Computed]
     public function rooms()
     {
-        return Room::all();
+        return Cache::remember('rooms.catalog.all', now()->addMinutes(10), function () {
+            return Room::query()
+                ->catalog()
+                ->orderedForCatalog()
+                ->get();
+        });
     }
 
     public function openModal($roomId)
     {
-        // Fetch selected room directly via indexed database query
-        $this->selectedRoom = Room::find($roomId);
+        $this->selectedRoom = $this->rooms->firstWhere('id', (int) $roomId)
+            ?? Room::query()->catalog()->findOrFail($roomId);
         $this->showModal = true;
     }
 
@@ -36,6 +44,36 @@ class RoomDashboard extends Component
         $this->endTime = null;
         $this->showModal = false;
         $this->resetErrorBag();
+    }
+
+    public function suggestRooms(RoomRecommendationService $recommendationService): void
+    {
+        $this->validate([
+            'preference' => 'nullable|string|max:500',
+        ]);
+
+        $key = 'suggest-rooms:'.auth()->id();
+
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($key, 5)) {
+            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($key);
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'preference' => "Too many matching attempts. Please wait {$seconds} seconds before trying again.",
+            ]);
+        }
+
+        \Illuminate\Support\Facades\RateLimiter::hit($key, 60);
+
+        $this->recommendation = $recommendationService->recommend(
+            auth()->user(),
+            $this->preference,
+            $this->rooms,
+        );
+    }
+
+    public function clearRecommendation(): void
+    {
+        $this->preference = '';
+        $this->recommendation = [];
     }
 
     public function bookRoom(BookingService $bookingService)
@@ -54,14 +92,17 @@ class RoomDashboard extends Component
 
             $this->closeModal();
             session()->flash('success', 'Room booked successfully!');
-            
         } catch (ValidationException $e) {
             $errors = [];
             foreach ($e->errors() as $key => $messages) {
                 // Map the service validation keys to our Livewire component properties
-                if ($key === 'start_time') $errors['startTime'] = $messages;
-                elseif ($key === 'end_time') $errors['endTime'] = $messages;
-                else $errors[$key] = $messages;
+                if ($key === 'start_time') {
+                    $errors['startTime'] = $messages;
+                } elseif ($key === 'end_time') {
+                    $errors['endTime'] = $messages;
+                } else {
+                    $errors[$key] = $messages;
+                }
             }
             throw ValidationException::withMessages($errors);
         }

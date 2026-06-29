@@ -2,17 +2,16 @@
 
 namespace App\Livewire;
 
-use Livewire\Attributes\Computed;
 use App\Models\Booking;
 use App\Services\BookingService;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 class MyBookings extends Component
 {
-    // Edit modal state
-    public $showEditModal   = false;
-    public $editingBooking  = null;
+    public $showEditModal = false;
+    public $editingBooking = null;
     public $newStartTime;
     public $newEndTime;
 
@@ -21,25 +20,20 @@ class MyBookings extends Component
     {
         return auth()->user()
             ->bookings()
+            ->select(['id', 'user_id', 'room_id', 'start_time', 'end_time', 'status'])
             ->with('room')
-            ->where('status', 'confirmed')
-            ->where('start_time', '>=', now())
+            ->confirmed()
+            ->upcoming()
             ->orderBy('start_time')
             ->get();
     }
 
-    // ─── Cancel ──────────────────────────────────────────────────────────────
-
     public function cancelBooking(int $bookingId): void
     {
-        $booking = Booking::findOrFail($bookingId);
+        $booking = Booking::query()
+            ->forUser(auth()->id())
+            ->findOrFail($bookingId);
 
-        // Security: ensure this booking belongs to the authenticated user
-        if ($booking->user_id !== auth()->id()) {
-            abort(403);
-        }
-
-        // Time check: cannot cancel a booking that has already started
         if ($booking->start_time->isPast()) {
             session()->flash('error', 'Cannot cancel a booking that has already started.');
             return;
@@ -49,29 +43,26 @@ class MyBookings extends Component
         session()->flash('success', 'Booking cancelled successfully.');
     }
 
-    // ─── Edit ─────────────────────────────────────────────────────────────────
-
     public function editBooking(int $bookingId): void
     {
-        $booking = Booking::findOrFail($bookingId);
-
-        if ($booking->user_id !== auth()->id()) {
-            abort(403);
-        }
+        $booking = Booking::query()
+            ->with('room')
+            ->forUser(auth()->id())
+            ->findOrFail($bookingId);
 
         $this->editingBooking = $booking;
-        $this->newStartTime   = $booking->start_time->format('Y-m-d\TH:i');
-        $this->newEndTime     = $booking->end_time->format('Y-m-d\TH:i');
+        $this->newStartTime = $booking->start_time->format('Y-m-d\TH:i');
+        $this->newEndTime = $booking->end_time->format('Y-m-d\TH:i');
         $this->resetErrorBag();
-        $this->showEditModal  = true;
+        $this->showEditModal = true;
     }
 
     public function closeEditModal(): void
     {
-        $this->showEditModal  = false;
+        $this->showEditModal = false;
         $this->editingBooking = null;
-        $this->newStartTime   = null;
-        $this->newEndTime     = null;
+        $this->newStartTime = null;
+        $this->newEndTime = null;
         $this->resetErrorBag();
     }
 
@@ -79,18 +70,17 @@ class MyBookings extends Component
     {
         $this->validate([
             'newStartTime' => 'required|date|after_or_equal:now',
-            'newEndTime'   => 'required|date|after:newStartTime',
+            'newEndTime' => 'required|date|after:newStartTime',
         ]);
 
         try {
             $bookingService->updateBooking($this->editingBooking, [
                 'start_time' => $this->newStartTime,
-                'end_time'   => $this->newEndTime,
+                'end_time' => $this->newEndTime,
             ]);
 
             $this->closeEditModal();
             session()->flash('success', 'Booking updated successfully.');
-
         } catch (ValidationException $e) {
             throw ValidationException::withMessages($e->errors());
         }

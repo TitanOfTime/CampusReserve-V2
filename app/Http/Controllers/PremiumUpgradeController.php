@@ -14,7 +14,7 @@ class PremiumUpgradeController extends Controller
      */
     public function checkout(): RedirectResponse
     {
-        Stripe::setApiKey(env('STRIPE_SECRET'));
+        Stripe::setApiKey(config('services.stripe.secret'));
 
         $session = StripeSession::create([
             'payment_method_types' => ['card'],

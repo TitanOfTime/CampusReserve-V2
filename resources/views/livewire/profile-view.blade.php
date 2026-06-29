@@ -70,7 +70,7 @@
                         <p class="text-amber-100 text-xs mb-4 max-w-md">Get instant access to premium meeting rooms, elite boardrooms, priority scheduling, and unlimited booking durations for a one-time payment of $10.</p>
                         <a href="{{ route('premium.checkout') }}"
                            class="inline-flex items-center px-4 py-2.5 bg-white text-orange-600 text-xs font-bold rounded-lg shadow-sm hover:bg-orange-50 transition-colors uppercase tracking-wider">
-                            Upgrade Now – $10
+                            Upgrade Now - $10
                         </a>
                     </div>
                     {{-- Decorative big background crown --}}

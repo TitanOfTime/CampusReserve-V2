@@ -19,7 +19,13 @@ class BookingController extends Controller
      */
     public function index(Request $request)
     {
-        $bookings = $request->user()->bookings()->with('room')->get();
+        $bookings = $request->user()
+            ->bookings()
+            ->select(['id', 'user_id', 'room_id', 'start_time', 'end_time', 'purpose', 'status', 'created_at'])
+            ->with('room')
+            ->orderByDesc('start_time')
+            ->get();
+
         return response()->json($bookings);
     }
 

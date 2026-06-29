@@ -18,19 +18,20 @@ class BookingService
     public function createBooking(User $user, array $data): Booking
     {
         return DB::transaction(function () use ($user, $data) {
-            // 1. Premium room access check
-            $room = Room::findOrFail($data['room_id']);
+            $room = Room::query()
+                ->select(['id', 'is_premium'])
+                ->findOrFail($data['room_id']);
+
             if ($room->is_premium && !$user->is_premium) {
                 throw ValidationException::withMessages([
                     'room_id' => 'Only premium users can book premium rooms.',
                 ]);
             }
 
-            // 2. Double-booking check (DB-level with row locking)
-            $overlap = Booking::where('room_id', $data['room_id'])
-                ->where('status', 'confirmed')
-                ->where('start_time', '<', $data['end_time'])
-                ->where('end_time', '>', $data['start_time'])
+            $overlap = Booking::query()
+                ->forRoom($data['room_id'])
+                ->confirmed()
+                ->overlapping($data['start_time'], $data['end_time'])
                 ->lockForUpdate()
                 ->exists();
 
@@ -40,7 +41,6 @@ class BookingService
                 ]);
             }
 
-            // 3. Create the booking
             return $user->bookings()->create([
                 'room_id' => $data['room_id'],
                 'start_time' => $data['start_time'],
@@ -56,24 +56,27 @@ class BookingService
      *
      * @throws ValidationException
      */
-    function updateBooking(Booking $booking, array $data): Booking
+    public function updateBooking(Booking $booking, array $data): Booking
     {
         return DB::transaction(function () use ($booking, $data) {
-            // 1. Premium room access check (room may have changed if ever extended)
-            $room = Room::findOrFail($booking->room_id);
+            $room = Room::query()
+                ->select(['id', 'is_premium'])
+                ->findOrFail($booking->room_id);
+
+            $booking->loadMissing('user');
             $user = $booking->user;
+
             if ($room->is_premium && !$user->is_premium) {
                 throw ValidationException::withMessages([
                     'room_id' => 'Only premium users can book premium rooms.',
                 ]);
             }
 
-            // 2. Double-booking check — EXCLUDES the booking being edited
-            $overlap = Booking::where('room_id', $booking->room_id)
-                ->where('status', 'confirmed')
-                ->where('id', '!=', $booking->id)   // <-- key difference
-                ->where('start_time', '<', $data['end_time'])
-                ->where('end_time', '>', $data['start_time'])
+            $overlap = Booking::query()
+                ->forRoom($booking->room_id)
+                ->confirmed()
+                ->whereKeyNot($booking->id)
+                ->overlapping($data['start_time'], $data['end_time'])
                 ->lockForUpdate()
                 ->exists();
 
@@ -83,10 +86,9 @@ class BookingService
                 ]);
             }
 
-            // 3. Apply the update
             $booking->update([
                 'start_time' => $data['start_time'],
-                'end_time'   => $data['end_time'],
+                'end_time' => $data['end_time'],
             ]);
 
             return $booking->fresh();

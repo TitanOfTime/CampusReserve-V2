@@ -12,16 +12,22 @@
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800&display=swap" rel="stylesheet" />
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
         <!-- Styles -->
         @livewireStyles
+        <style>
+            body { font-family: 'Inter', sans-serif; }
+        </style>
+        <script>
+            document.documentElement.setAttribute('data-theme', localStorage.getItem('campus-theme') || 'aurora');
+        </script>
     </head>
-    <body>
-        <div class="font-sans text-gray-900 antialiased">
+    <body class="theme-shell min-h-screen">
+        <div class="font-sans text-[color:var(--text)] antialiased">
             {{ $slot }}
         </div>
 
